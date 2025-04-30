@@ -1,94 +1,97 @@
-# Chrome Extension Starter with Vite, React, TypeScript, and Tailwind CSS
-This project is a starter template for building modern Chrome extensions using Vite, React, TypeScript, and Tailwind CSS. It simplifies the setup so you can focus on building your extension's features.
+# Amazon Tariff Calculator Chrome Extension
 
-<div style="display: flex; justify-content: space-around">
-  <img src="https://github.com/user-attachments/assets/b2267b19-1618-4797-8e0e-a241697b92cf" alt="image 1" width="200"/>
-  <img src="https://github.com/user-attachments/assets/eb6304c9-afd7-4bfc-b9ce-8099531a66d9" alt="image 2" width="200"/>
-  <img src="https://github.com/user-attachments/assets/7808d29d-d1ca-4287-b82b-183ad7b6510a" alt="image 3" width="200"/>
-  <img src="https://github.com/user-attachments/assets/c2f328e2-f7d6-4e6d-a3ec-8e750625e0f8" alt="image 4" width="200"/>
-</div>
-
-## View tutorial on YouTube
- <a href="https://www.youtube.com/watch?v=jwDErziR1nE">
-    <img src="http://i.ytimg.com/vi/jwDErziR1nE/hqdefault.jpg" alt="YouTube video" width="200"/>
-  </a>
+A Chrome extension that shows the impact of proposed Trump tariffs on Amazon products imported from China. The extension identifies products from China on Amazon and displays the post-tariff price directly on the product page.
 
 ## Features
-- **Fast reloading** develop UI faster, view the popup and options page
-- **Vite** for fast bundling and development
-- **React** for building interactive UI components
-- **TypeScript** for type-safe JavaScript development
-- **Tailwind CSS** for easy and responsive styling
-- **chrome-types** Chrome's API TS files for auto-completion 
+
+- Automatically detects products from China on Amazon product pages
+- Categorizes products using Gemini Flash 1.5 AI model via OpenRouter
+- Calculates tariff impact based on Trump's proposed tariff rates
+- Shows post-tariff price with clear breakdown and category
+- Applies tariff only to the landed cost (40% of product price)
+- Uses Upstash Redis for fast caching of categorization results
+
+## Tariff Categories and Rates
+
+The extension uses the following tariff rates by category:
+
+- **Electronics**: 20%
+- **Furniture**: 25%
+- **Apparel**: 30%
+- **Footwear**: 16%
+- **Toys**: 7.5%
+- **Other items**: 145% (20% Fentanyl tariff + 125% Trade imbalance tariff)
 
 ## Installation
 
-### Clone this repository:
-```
-git clone https://github.com/omribarmats/chrome-extension-starter.git new-project
-```
-* Replace `new-project` with your project name
+### Prerequisites
 
-### Open the new directory:
-```
-cd new-project
-```
-### Install dependencies:
-```
-npm install
-```
-### Start the development server:
-```
-npm run dev
-```
-## Load the Extension
+Before building the extension, you'll need:
 
-1. Run the build command: `npm run build.`
-2. Go to `chrome://extensions/` in your Chrome browser.
-3. Enable `Developer mode`.
-4. Click `Load unpacked` and select the `dist` folder from the project.
+1. An [OpenRouter](https://openrouter.ai/) API key for AI product categorization
+2. [Upstash Redis](https://upstash.com/) credentials for caching (URL and token)
+
+### Setup
+
+1. Clone this repository
+   ```
+   git clone https://github.com/yourusername/amazon-tariff-calculator.git
+   cd amazon-tariff-calculator
+   ```
+
+2. Install dependencies
+   ```
+   pnpm install
+   ```
+
+3. Create a `.env` file with your API keys (copy from example)
+   ```
+   cp .env.example .env
+   ```
+   
+4. Edit the `.env` file and add your API keys:
+   ```
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
+   UPSTASH_REDIS_URL=your_upstash_redis_url_here
+   UPSTASH_REDIS_TOKEN=your_upstash_redis_token_here
+   ```
+
+5. Build the extension with environment variables
+   ```
+   pnpm run build:env
+   ```
+
+### Loading in Chrome
+
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" in the top-right corner
+3. Click "Load unpacked" and select the `dist` folder from this project
+4. The extension is now installed and will automatically work on Amazon product pages
 
 ## Development
-- Hot-reload enabled for easier development.
-- Modify your code in the src folder.
-- Tailwind CSS is already configured and ready to use.
-- Run `nmp run build` to implement changes to `dist` folder
-- Go on `chrome://extensions/` and click refresh `⟳`
 
-### How to change the popup? 
-- Go on `src/chrome-extension/popup/index.tsx`
-- Once changes are made open the terminal and run `nmp run build` then visit `chrome://extensions/` and click the refresh `⟳` button on your extension
+- Run `pnpm run dev` to start the development server for local UI components
+- Make changes to files in the `src/` directory
+- Run `pnpm run build:env` to build the extension with your environment variables
+- Reload the extension in Chrome to see your changes
 
-### How to change the options page? 
-- Go on `src/chrome-extension/options/index.tsx`
-- Once changes are made open the terminal and run `nmp run build` then visit `chrome://extensions/` and click the refresh `⟳` button on your extension
+## Technologies Used
 
-- ### How to add a background script? 
-- Create a `background.ts` file inside the `src` folder
-- Go on `vite.config.ts` and add this line `background: resolve(__dirname, "src/background.ts"),` under `build.rollupOptions.input`
-- For example 
-```
- build: {
-    rollupOptions: {
-      input: {
-        popup: resolve(__dirname, "popup.html"),
-        options: resolve(__dirname, "options.html"),
-        background: resolve(__dirname, "src/background.ts"),
-      },
-      output: {
-        entryFileNames: "[name].js",
-      },
-    },
-  },
-```
-- Go on `manifest.json` and add this code:
-```
-  "background": {
-    "service_worker": "background.js",
-    "type": "module"
-  }
-``` 
-- Open the terminal and run `nmp run build` then visit `chrome://extensions/` and click the refresh `⟳` button on your extension
+- **React** - UI components
+- **TypeScript** - Type-safe JavaScript
+- **Tailwind CSS** - Styling
+- **OpenRouter & Gemini Flash 1.5** - AI-powered product categorization
+- **Upstash Redis** - Fast, serverless caching
+- **Chrome Extensions API** - Browser integration
+
+## Privacy and Security
+
+This extension:
+- Does not collect or store any user data
+- Only processes information about products displayed on Amazon
+- Communicates with OpenRouter for product categorization and Upstash for caching
+- All API keys are stored in environment variables during build, not in the extension itself
 
 ## Contributing
-Feel free to fork the project and make improvements or submit bug reports or issues.
+
+Contributions are welcome! Please feel free to submit a Pull Request.

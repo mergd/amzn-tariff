@@ -1,16 +1,40 @@
 {
-    "manifest_version": 3,
-    "name": "Chrome Extension Starter",
-    "version": "1.0.0",
-    "action" : {
-      "default_popup": "popup.html"
+  "manifest_version": 3,
+  "name": "Amazon Trump Tariff Calculator",
+  "version": "1.0.0",
+  "description": "Shows the impact of proposed Trump tariffs on Amazon products from China with AI-powered categorization",
+  "action": {
+    "default_popup": "popup.html"
   },
   "options_page": "options.html",
-  "description": "This is the description of your extension",
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.amazon.com/*", "*://*.amazon.ca/*", "*://*.amazon.co.uk/*", "*://*.amazon.com.au/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "*://*.amazon.com/*",
+    "*://*.amazon.ca/*",
+    "*://*.amazon.co.uk/*", 
+    "*://*.amazon.com.au/*",
+    "https://openrouter.ai/*",
+    "https://*.upstash.io/*"
+  ],
   "icons": {
     "16": "public/16.png",
     "32": "public/32.png",
     "48": "public/48.png",
     "192": "public/192.png"
   }
-  }
+}
