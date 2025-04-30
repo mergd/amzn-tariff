@@ -28,6 +28,12 @@ const openai = new OpenAI({
 //   token: ENV.UPSTASH_REDIS_TOKEN,
 // });
 
+// Local in-memory cache for tariff info (lives as long as service worker is alive)
+const localTariffCache: Record<string, TariffInfo> = {};
+
+// Guard to prevent multiple listeners (shouldn't be needed in MV3, but just in case)
+let messageListenerRegistered = false;
+
 // Function to determine product category based on title
 function determineCategory(title: string): string {
   title = title.toLowerCase();
@@ -190,14 +196,14 @@ async function processTariffCalculation(
   productInfo: ProductInfo
 ): Promise<TariffInfo> {
   try {
-    // First, check the cache
-    // const cachedInfo = await getCachedTariffInfo(productInfo.title);
-    // if (cachedInfo) {
-    //   console.log("Cache hit for:", productInfo.title);
-    //   return cachedInfo;
-    // }
+    // Use local memory cache first
+    const cacheKey = productInfo.title.trim().toLowerCase();
+    if (localTariffCache[cacheKey]) {
+      console.log("Local cache hit for:", productInfo.title);
+      return localTariffCache[cacheKey];
+    }
 
-    console.log("Cache miss for:", productInfo.title);
+    console.log("Local cache miss for:", productInfo.title);
 
     // Use AI for categorization when available
     const aiCategory = await aiCategorizeProduct(productInfo.title);
@@ -212,8 +218,8 @@ async function processTariffCalculation(
       isFallback: rate === 145,
     };
 
-    // Cache the result
-    // await cacheTariffInfo(productInfo.title, tariffInfo);
+    // Store in local cache
+    localTariffCache[cacheKey] = tariffInfo;
 
     return tariffInfo;
   } catch (error) {
@@ -232,18 +238,21 @@ async function processTariffCalculation(
 }
 
 // Listen for messages from content script
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
-  if (request.action === "calculateTariff") {
-    const { productInfo } = request;
+if (!messageListenerRegistered) {
+  chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+    if (request.action === "calculateTariff") {
+      const { productInfo } = request;
 
-    // Process the tariff calculation
-    processTariffCalculation(productInfo).then((tariffInfo) => {
-      sendResponse(tariffInfo);
-    });
+      // Process the tariff calculation
+      processTariffCalculation(productInfo).then((tariffInfo) => {
+        sendResponse(tariffInfo);
+      });
 
-    return true; // Required for async sendResponse
-  }
-});
+      return true; // Required for async sendResponse
+    }
+  });
+  messageListenerRegistered = true;
+}
 
 // Listen for installation or update
 chrome.runtime.onInstalled.addListener(() => {
